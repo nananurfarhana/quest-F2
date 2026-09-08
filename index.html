@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CODE QUEST: MISSION DEBUG</title>
+    <!-- Tailwind CSS for UI layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;600;700&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-purple: #9d00ff;
+            --neon-green: #00ff66;
+            --neon-red: #ff0055;
+            --neon-yellow: #ffcc00;
+            --bg-dark: #0a0b10;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark);
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* Canvas glowing aesthetics */
+        #gameCanvas {
+            background: linear-gradient(180deg, #0d0f18 0%, #05060a 100%);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.15);
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Glassmorphism elements */
+        .glass-panel {
+            background: rgba(15, 20, 35, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 243, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(0, 243, 255, 0.05);
+        }
+
+        /* Custom buttons */
+        .btn-cyber {
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.2) 0%, rgba(157, 0, 255, 0.2) 100%);
+            border: 2px solid var(--neon-blue);
+            color: #ffffff;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+            cursor: pointer;
+        }
+
+        .btn-cyber:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--neon-blue) 0%, var(--neon-purple) 100%);
+            color: #000000;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .btn-cyber:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-cyber:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #555555;
+        }
+
+        .btn-danger {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 10px rgba(ff, 0, 85, 0.3);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--neon-red);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.8);
+        }
+
+        .btn-success {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: var(--neon-green);
+            color: #000000;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.8);
+        }
+
+        /* Controls styling */
+        .touch-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 243, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .touch-btn:active {
+            background: rgba(0, 243, 255, 0.4);
+            border-color: var(--neon-blue);
+        }
+
+        /* Animations */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(0, 243, 255, 0.9); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s infinite;
+        }
+
+        /* Custom Scrollbar for Modal */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-blue);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-white h-screen w-screen flex flex-col justify-between overflow-hidden">
+
+    <!-- MAIN CONTAINER -->
+    <div id="app" class="relative w-full h-full flex flex-col justify-between items-center overflow-hidden">
+
+        <!-- ========================================== -->
+        <!-- SCREEN 1: HOME SCREEN                      -->
+        <!-- ========================================== -->
+        <div id="homeScreen" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-cover bg-center" style="background-image: radial-gradient(circle at center, #1a1c2e 0%, #05060a 100%);">
+            <!-- Grid decorative background overlay -->
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#1f293d15_1px,transparent_1px),linear-gradient(to_bottom,#1f293d15_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+
+            <div class="relative z-10 max-w-2xl w-full text-center space-y-6 glass-panel p-8 rounded-2xl border border-cyan-500/30 pulse-glow">
+                <div class="space-y-2">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-cyan-950 text-cyan-400 border border-cyan-500/30">
+                        Sains Komputer Tingkatan 2 • 2 CEKAL
+                    </span>
+                    <h1 class="text-4xl md:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 drop-shadow-[0_0_15px_rgba(0,243,255,0.5)]">
+                        CODE QUEST
+                    </h1>
+                    <h2 class="pixel-font text-xl md:text-2xl text-purple-400 tracking-widest mt-1">
+                        MISSION DEBUG
+                    </h2>
+                    <p class="text-slate-300 text-sm md:text-base font-medium pt-2">
+                        Bantu <strong class="text-cyan-300">BYTE</strong> meneroka dunia digital, menyelesaikan persoalan algoritma, dan mengesan ralat!
+                    </p>
+                </div>
+
+                <div class="flex flex-col space-y-3 pt-4 max-w-xs mx-auto">
+                    <button id="startBtn" class="btn-cyber py-3 px-6 rounded-xl text-lg flex items-center justify-center space-x-2">
+                        <span>🎮</span>
+                        <span>MULA GAME</span>
+                    </button>
+                    <button id="topicBtn" class="btn-cyber py-3 px-6 rounded-xl text-lg flex items-center justify-center space-x-2">
+                        <span>📚</span>
+                        <span>PILIH SUBTOPIK</span>
+                    </button>
+                    <button id="howToBtn" class="btn-cyber py-3 px-6 rounded-xl text-base flex items-center justify-center space-x-2 border-slate-600">
+                        <span>❓</span>
+                        <span>CARA BERMAIN</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 2: SUBTOPIC SELECT                  -->
+        <!-- ========================================== -->
+        <div id="topicsScreen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-slate-950">
+            <div class="max-w-3xl w-full glass-panel p-6 md:p-8 rounded-2xl border border-cyan-500/30 space-y-6 max-h-[90vh] overflow-y-auto">
+                <div class="text-center space-y-1">
+                    <h2 class="text-3xl font-bold text-cyan-400">PILIH SUBTOPIK ALGORITMA</h2>
+                    <p class="text-slate-400 text-sm">Pilih mana-mana subtopik untuk memulakan misi ulangan kaji Anda.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="forBtn" class="btn-cyber p-4 rounded-xl text-left flex flex-col justify-between space-y-2 border-cyan-400">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="pixel-font text-xs text-cyan-300">SUBTOPIK 1</span>
+                            <span class="text-lg">🔁</span>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-white">FOR</div>
+                            <div class="text-xs text-slate-300 font-normal">Struktur kawalan ulangan FOR (pembilang tetap)</div>
+                        </div>
+                    </button>
+
+                    <button id="whileBtn" class="btn-cyber p-4 rounded-xl text-left flex flex-col justify-between space-y-2 border-purple-400">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="pixel-font text-xs text-purple-300">SUBTOPIK 2</span>
+                            <span class="text-lg">🔄</span>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-white">WHILE-DO</div>
+                            <div class="text-xs text-slate-300 font-normal">Struktur kawalan ulangan WHILE-DO (selagi syarat BENAR)</div>
+                        </div>
+                    </button>
+
+                    <button id="nestedBtn" class="btn-cyber p-4 rounded-xl text-left flex flex-col justify-between space-y-2 border-emerald-400">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="pixel-font text-xs text-emerald-300">SUBTOPIK 3</span>
+                            <span class="text-lg">🔀</span>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-white">PILIHAN BERSARANG</div>
+                            <div class="text-xs text-slate-300 font-normal">Struktur kawalan pilihan bersarang (Nested Selection)</div>
+                        </div>
+                    </button>
+
+                    <button id="debugBtn" class="btn-cyber p-4 rounded-xl text-left flex flex-col justify-between space-y-2 border-pink-400">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="pixel-font text-xs text-pink-300">SUBTOPIK 4</span>
+                            <span class="text-lg">🛠️</span>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-white">DEBUGGING</div>
+                            <div class="text-xs text-slate-300 font-normal">Mengesan & membaiki ralat pseudokod dan carta alir</div>
+                        </div>
+                    </button>
+                </div>
+
+                <button id="mixedBtn" class="btn-cyber w-full p-4 rounded-xl text-center border-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/30">
+                    <div class="text-lg font-bold text-yellow-300 flex items-center justify-center space-x-2">
+                        <span>⚡</span>
+                        <span>CAMPURAN SEMUA SUBTOPIK</span>
+                        <span>⚡</span>
+                    </div>
+                    <div class="text-xs text-slate-300 font-normal mt-1">Cabaran gabungan 10 soalan acak dari semua subtopik</div>
+                </button>
+
+                <div class="pt-2 text-center">
+                    <button id="backHomeBtn" class="text-slate-400 hover:text-white text-sm underline flex items-center justify-center mx-auto space-x-1">
+                        <span>← Kembali ke Menu Utama</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 3: GAME SCREEN                      -->
+        <!-- ========================================== -->
+        <div id="gameScreen" class="hidden absolute inset-0 z-10 flex flex-col w-full h-full bg-slate-950">
+            <!-- HUD HEADER -->
+            <div class="absolute top-0 left-0 right-0 z-20 p-2 md:p-4 flex justify-between items-center glass-panel border-b border-cyan-500/30 text-xs md:text-sm font-bold">
+                <div class="flex items-center space-x-3 md:space-x-6">
+                    <div class="flex items-center space-x-1 text-red-400">
+                        <span>❤️</span>
+                        <span id="hudLives" class="pixel-font">3</span>
+                    </div>
+                    <div class="flex items-center space-x-1 text-yellow-400">
+                        <span>⭐</span>
+                        <span id="hudScore" class="pixel-font">0</span>
+                    </div>
+                    <div class="flex items-center space-x-1 text-amber-300">
+                        <span>🪙</span>
+                        <span id="hudCoins" class="pixel-font">0</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 md:space-x-4">
+                    <div class="bg-cyan-950/80 px-2 py-1 rounded border border-cyan-500/40 text-cyan-300 flex items-center space-x-1">
+                        <span class="hidden sm:inline">TOPIK:</span>
+                        <span id="hudTopic" class="font-bold">FOR</span>
+                    </div>
+                    <div class="bg-purple-950/80 px-2 py-1 rounded border border-purple-500/40 text-purple-300">
+                        ❓ <span id="hudQuestionProgress">0/10</span>
+                    </div>
+                    <button id="pauseBtn" class="btn-cyber px-3 py-1 text-xs rounded border-cyan-400">
+                        ⏸️ PAUSE
+                    </button>
+                </div>
+            </div>
+
+            <!-- CANVAS AREA -->
+            <div class="relative flex-1 w-full h-full">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+
+            <!-- ON-SCREEN MOBILE CONTROLS -->
+            <div id="mobileControls" class="absolute bottom-3 left-0 right-0 z-20 flex justify-between items-center px-4 md:px-12 pointer-events-none">
+                <div class="flex space-x-3 pointer-events-auto">
+                    <button id="leftBtn" class="touch-btn w-14 h-14 md:w-16 md:h-16 text-2xl bg-slate-900/80 border-cyan-400">◀</button>
+                    <button id="rightBtn" class="touch-btn w-14 h-14 md:w-16 md:h-16 text-2xl bg-slate-900/80 border-cyan-400">▶</button>
+                </div>
+                <div class="pointer-events-auto">
+                    <button id="jumpBtn" class="touch-btn w-16 h-16 md:w-20 md:h-20 text-sm font-bold bg-purple-900/80 border-purple-400">JUMP</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SCREEN 4: RESULT SCREEN                    -->
+        <!-- ========================================== -->
+        <div id="resultScreen" class="hidden absolute inset-0 z-30 flex flex-col items-center justify-center p-4 bg-slate-950">
+            <div class="max-w-xl w-full glass-panel p-6 md:p-8 rounded-2xl border border-cyan-500/40 text-center space-y-6 pulse-glow">
+                <div class="space-y-1">
+                    <div class="pixel-font text-xs text-cyan-400 tracking-widest uppercase">Misi Selesai!</div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">
+                        MISSION COMPLETE!
+                    </h2>
+                </div>
+
+                <div id="resultCategoryBadge" class="inline-block px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-lg shadow-lg">
+                    LOGIC EXPERT
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 max-w-md mx-auto text-left text-sm">
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-xs">SUBTOPIK</span>
+                        <span id="resTopic" class="font-bold text-cyan-300">FOR</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-xs">JUMLAH SKOR</span>
+                        <span id="resScore" class="font-bold text-yellow-400">85</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-xs">SOALAN BETUL</span>
+                        <span id="resCorrect" class="font-bold text-green-400">8 / 10</span>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800">
+                        <span class="text-slate-400 block text-xs">PENCAPAIAN</span>
+                        <span id="resPercentage" class="font-bold text-purple-400">80%</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 pt-2 max-w-md mx-auto">
+                    <button id="playAgainBtn" class="btn-cyber flex-1 py-3 rounded-xl text-sm font-bold">
+                        🔄 MAIN LAGI
+                    </button>
+                    <button id="chooseTopicBtn" class="btn-cyber flex-1 py-3 rounded-xl text-sm font-bold">
+                        📚 SUBTOPIK
+                    </button>
+                    <button id="homeBtn" class="btn-cyber flex-1 py-3 rounded-xl text-sm font-bold border-slate-600">
+                        🏠 HOME
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODAL: HOW TO PLAY                         -->
+        <!-- ========================================== -->
+        <div id="howToModal" class="hidden absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div class="max-w-lg w-full glass-panel p-6 rounded-2xl border border-cyan-500/30 space-y-4 max-h-[85vh] overflow-y-auto">
+                <h3 class="text-2xl font-bold text-cyan-400 flex items-center space-x-2">
+                    <span>🕹️</span>
+                    <span>CARA BERMAIN</span>
+                </h3>
+                <div class="space-y-3 text-sm text-slate-300 leading-relaxed">
+                    <p><strong>Matlamat:</strong> Meneroka laluan digital bersama Byte, kumpul syiling dan jawab soalan di Question Gate untuk menamatkan misi!</p>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-1">
+                        <div class="font-semibold text-cyan-300">Kawalan Komputer / Keyboard:</div>
+                        <ul class="list-disc list-inside text-xs space-y-1">
+                            <li><kbd class="px-1 bg-slate-800 rounded">◀</kbd> atau <kbd class="px-1 bg-slate-800 rounded">A</kbd> : Bergerak Kiri</li>
+                            <li><kbd class="px-1 bg-slate-800 rounded">▶</kbd> atau <kbd class="px-1 bg-slate-800 rounded">D</kbd> : Bergerak Kanan</li>
+                            <li><kbd class="px-1 bg-slate-800 rounded">Space</kbd> atau <kbd class="px-1 bg-slate-800 rounded">W</kbd> : Melompat</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-1">
+                        <div class="font-semibold text-purple-300">Kawalan Skrin Sentuh (Skrin / Tablet):</div>
+                        <p class="text-xs">Gunakan butang pad sentuh <span class="text-cyan-400">◀</span>, <span class="text-cyan-400">▶</span> dan <span class="text-purple-400">JUMP</span> di bahagian bawah skrin.</p>
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-800 space-y-1">
+                        <div class="font-semibold text-yellow-300">Question Gate:</div>
+                        <p class="text-xs">Apabila tiba di pintu pagar digital, anda dikehendaki menjawab soalan algoritma. Jawapan betul membuka pintu & memberi +10 markah. Jawapan salah mengurangkan 1 nyawa.</p>
+                    </div>
+                </div>
+                <button id="closeHowToBtn" class="btn-cyber w-full py-2.5 rounded-xl text-sm mt-2">
+                    FAHAM & TUTUP
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODAL: PAUSE                               -->
+        <!-- ========================================== -->
+        <div id="pauseModal" class="hidden absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div class="max-w-xs w-full glass-panel p-6 rounded-2xl border border-cyan-500/40 text-center space-y-4">
+                <h3 class="text-2xl font-bold text-cyan-400 tracking-wider">GAME PAUSED</h3>
+                <div class="flex flex-col space-y-3 pt-2">
+                    <button id="resumeBtn" class="btn-cyber py-2.5 rounded-xl text-sm">
+                        ▶️ RESUME
+                    </button>
+                    <button id="restartBtn" class="btn-cyber py-2.5 rounded-xl text-sm border-amber-400">
+                        🔄 RESTART
+                    </button>
+                    <button id="topicFromPauseBtn" class="btn-cyber py-2.5 rounded-xl text-sm border-purple-400">
+                        📚 PILIH SUBTOPIK
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODAL: QUESTION GATE                       -->
+        <!-- ========================================== -->
+        <div id="questionModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-3 md:p-4 bg-slate-950/85 backdrop-blur-md">
+            <div class="max-w-2xl w-full glass-panel p-5 md:p-6 rounded-2xl border border-cyan-500/50 space-y-4 max-h-[95vh] overflow-y-auto">
+                <!-- Question Header -->
+                <div class="flex justify-between items-center border-b border-cyan-500/30 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xl">🚪</span>
+                        <span class="font-bold text-cyan-300 text-base md:text-lg">QUESTION GATE</span>
+                    </div>
+                    <div class="text-xs px-3 py-1 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 font-semibold">
+                        SUBTOPIK: <span id="qModalTopic">FOR</span>
+                    </div>
+                </div>
+
+                <!-- Question Prompt -->
+                <div class="space-y-2">
+                    <div id="qModalNumber" class="pixel-font text-xs text-purple-400">SOALAN 1 / 10</div>
+                    <div id="qModalText" class="text-base md:text-lg font-semibold text-white leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+                        -- Text Soalan --
+                    </div>
+                </div>
+
+                <!-- Options Grid -->
+                <div class="grid grid-cols-1 gap-2.5 pt-1">
+                    <button id="optBtn0" class="btn-cyber p-3 rounded-xl text-left text-sm md:text-base flex items-start space-x-3">
+                        <span class="font-bold text-cyan-300">A.</span>
+                        <span class="opt-text flex-1">Option A</span>
+                    </button>
+                    <button id="optBtn1" class="btn-cyber p-3 rounded-xl text-left text-sm md:text-base flex items-start space-x-3">
+                        <span class="font-bold text-cyan-300">B.</span>
+                        <span class="opt-text flex-1">Option B</span>
+                    </button>
+                    <button id="optBtn2" class="btn-cyber p-3 rounded-xl text-left text-sm md:text-base flex items-start space-x-3">
+                        <span class="font-bold text-cyan-300">C.</span>
+                        <span class="opt-text flex-1">Option C</span>
+                    </button>
+                    <button id="optBtn3" class="btn-cyber p-3 rounded-xl text-left text-sm md:text-base flex items-start space-x-3">
+                        <span class="font-bold text-cyan-300">D.</span>
+                        <span class="opt-text flex-1">Option D</span>
+                    </button>
+                </div>
+
+                <!-- Feedback Box -->
+                <div id="qFeedbackBox" class="hidden p-3 rounded-xl text-xs md:text-sm font-medium space-y-1">
+                    <div id="qFeedbackTitle" class="font-bold text-base"></div>
+                    <div id="qFeedbackText" class="text-slate-200"></div>
+                </div>
+
+                <!-- Footer Action Buttons -->
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button id="retryAnswerBtn" class="hidden btn-cyber btn-danger px-5 py-2.5 rounded-xl text-sm font-bold">
+                        🔄 CUBA LAGI
+                    </button>
+                    <button id="continueBtn" class="hidden btn-cyber btn-success px-6 py-2.5 rounded-xl text-sm font-bold">
+                        ➡️ TERUSKAN
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- MODAL: GAME OVER                           -->
+        <!-- ========================================== -->
+        <div id="gameOverModal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
+            <div class="max-w-sm w-full glass-panel p-6 rounded-2xl border border-red-500/50 text-center space-y-4">
+                <div class="text-4xl">💥</div>
+                <h3 class="text-3xl font-extrabold text-red-500 tracking-wider">GAME OVER</h3>
+                <p class="text-slate-300 text-sm">Nyawa anda telah habis! Jangan putus asa, mari cuba lagi.</p>
+
+                <div class="flex flex-col space-y-2.5 pt-2">
+                    <button id="gameOverTryAgainBtn" class="btn-cyber btn-success py-2.5 rounded-xl text-sm font-bold">
+                        🔄 TRY AGAIN
+                    </button>
+                    <button id="gameOverTopicBtn" class="btn-cyber py-2.5 rounded-xl text-sm">
+                        📚 PILIH SUBTOPIK
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Simple Audio Synthesizer using Web Audio API (Dependency Free)
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playTone(freq, type, duration) {
+                try {
+                    this.init();
+                    if (this.ctx.state === 'suspended') this.ctx.resume();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type || 'sine';
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+            coin() { this.playTone(880, 'sine', 0.15); }
+            jump() { this.playTone(320, 'square', 0.12); }
+            correct() { this.playTone(587.33, 'triangle', 0.2); setTimeout(()=>this.playTone(880, 'triangle', 0.3), 120); }
+            wrong() { this.playTone(180, 'sawtooth', 0.3); }
+            gate() { this.playTone(440, 'sine', 0.25); }
+        }
+        const sfx = new SoundFX();
+
+        // QUESTION DATABASE (DSKP & Textbook Form 2 Computer Science Aligned)
+        const questionDatabase = {
+            for: [
+                {
+                    topic: "FOR",
+                    question: "Apakah kegunaan utama struktur kawalan ulangan FOR?",
+                    options: [
+                        "Melakukan ulangan bagi bilangan yang telah ditetapkan",
+                        "Melakukan semakan syarat sekurang-kurangnya sekali sahaja",
+                        "Memilih satu keputusan berdasarkan dua syarat sahaja",
+                        "Mengesan ralat sintaks dalam baris kod"
+                    ],
+                    answer: 0,
+                    explanation: "Struktur FOR digunakan apabila bilangan ulangan sudah diketahui secara pasti sebelum gelung dilaksanakan."
+                },
+                {
+                    topic: "FOR",
+                    question: "Dalam pseudokod 'FOR i = 1 TO 5', berapakah bilangan ulangan yang dilaksanakan?",
+                    options: ["4 kali", "5 kali", "6 kali", "1 kali"],
+                    answer: 1,
+                    explanation: "Gelung bermula dari i=1 hingga i=5, jadi ia akan berulang sebanyak 5 kali (1, 2, 3, 4, 5)."
+                },
+                {
+                    topic: "FOR",
+                    question: "Apakah nilai penuding 'i' selepas pelaksanaan 'FOR i = 2 TO 8 STEP 2'?",
+                    options: [
+                        "i mengambil nilai 2, 4, 6, 8",
+                        "i mengambil nilai 1, 3, 5, 7",
+                        "i mengambil nilai 2, 3, 4, 5",
+                        "i mengambil nilai 8 sahaja"
+                    ],
+                    answer: 0,
+                    explanation: "Kata kunci STEP 2 menandakan nilai penuding 'i' bertambah sebanyak 2 pada setiap langkah."
+                },
+                {
+                    topic: "FOR",
+                    question: "Diberi pseudokod:\nFOR k = 1 TO 3\n  CETAK k * 2\nNEXT k\nApakah output yang terhasil?",
+                    options: ["1, 2, 3", "2, 4, 6", "2, 4, 6, 8", "3, 6, 9"],
+                    answer: 1,
+                    explanation: "Pada k=1 -> 1*2=2; k=2 -> 2*2=4; k=3 -> 3*2=6. Maka output ialah 2, 4, 6."
+                },
+                {
+                    topic: "FOR",
+                    question: "Situasi manakah yang PALING SESUAI menggunakan struktur kawalan FOR?",
+                    options: [
+                        "Mencetak penyata gaji untuk tepat 30 orang pekerja",
+                        "Meminta pengguna memasukkan kata laluan sehingga betul",
+                        "Menunggu lampu isyarat bertukar hijau",
+                        "Menyemak gred lulus atau gagal berdasarkan markah"
+                    ],
+                    answer: 0,
+                    explanation: "Mencetak untuk 30 orang pekerja mempunyai bilangan ulangan yang telah ditetapkan (30 kali)."
+                },
+                {
+                    topic: "FOR",
+                    question: "Diberi pseudokod:\njumlah = 0\nFOR x = 1 TO 3\n  jumlah = jumlah + x\nNEXT x\nApakah nilai akhir 'jumlah'?",
+                    options: ["3", "5", "6", "9"],
+                    answer: 2,
+                    explanation: "Langkah 1: jumlah = 0 + 1 = 1. Langkah 2: jumlah = 1 + 2 = 3. Langkah 3: jumlah = 3 + 3 = 6."
+                },
+                {
+                    topic: "FOR",
+                    question: "Mengapakah struktur kawalan FOR dipanggil struktur kawalan dihitung (counted loop)?",
+                    options: [
+                        "Kerana bilangan ulangan diketahui dan dihitung pemboleh ubahnya",
+                        "Kerana ia mengira masa pelaksanaan program",
+                        "Kerana ia tidak memerlukan pemboleh ubah",
+                        "Kerana syarat diuji tanpa henti"
+                    ],
+                    answer: 0,
+                    explanation: "Ia dipanggil counted loop kerana nilai pemboleh ubah penuding dihitung pada setiap langkah."
+                },
+                {
+                    topic: "FOR",
+                    question: "Diberi gelung: FOR count = 5 TO 1 STEP -1. Berapakah ulangan yang berlaku?",
+                    options: ["0 kali", "4 kali", "5 kali", "6 kali"],
+                    answer: 2,
+                    explanation: "Pembilangan menurun dari 5 hingga 1 (5, 4, 3, 2, 1) menghasilkan 5 kali ulangan."
+                },
+                {
+                    topic: "FOR",
+                    question: "Dalam carta alir struktur FOR, apakah yang berlaku apabila nilai penuding melebihi nilai akhir?",
+                    options: [
+                        "Carta alir keluar dari gelung dan meneruskan ke arahan seterusnya",
+                        "Carta alir berulang dari nilai asal",
+                        "Program mengalami ralat sistem",
+                        "Carta alir berhenti secara paksa"
+                    ],
+                    answer: 0,
+                    explanation: "Apabila syarat penuding melebihi nilai had, laluan PALSU diambil untuk keluar dari gelung."
+                },
+                {
+                    topic: "FOR",
+                    question: "Apakah fungsi kata kunci 'NEXT' dalam pseudokod FOR?",
+                    options: [
+                        "Mengemaskini pemboleh ubah penuding dan kembali ke awal gelung",
+                        "Menamatkan keseluruhan program",
+                        "Mencetak jawapan ke skrin",
+                        "Membuka tetingkap baru"
+                    ],
+                    answer: 0,
+                    explanation: "Kata kunci NEXT menanda akhir blok ulangan FOR dan menambah nilai penuding."
+                }
+            ],
+            while: [
+                {
+                    topic: "WHILE-DO",
+                    question: "Bilakah syarat dalam struktur kawalan WHILE-DO diuji?",
+                    options: [
+                        "Sebelum blok arahan dilaksanakan",
+                        "Selepas blok arahan dilaksanakan sekurang-kurangnya sekali",
+                        "Hanya apabila program tamat",
+                        "Secara serentak dengan output"
+                    ],
+                    answer: 0,
+                    explanation: "Struktur WHILE-DO menguji syarat di bahagian awal sebelum memasuki gelung ulangan."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Apakah yang berlaku jika syarat awal struktur WHILE-DO adalah PALSU?",
+                    options: [
+                        "Blok arahan dalam gelung tidak akan dilaksanakan langsung",
+                        "Blok arahan dilaksanakan 1 kali sahaja",
+                        "Program akan menjadi hanging / terhenti",
+                        "Syarat akan ditukar menjadi BENAR secara automatik"
+                    ],
+                    answer: 0,
+                    explanation: "Kerana syarat diuji di awal, jika dari mula PALSU, gelung terus diabaikan."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Diberi pseudokod:\nx = 1\nWHILE x <= 3 DO\n  CETAK x\n  x = x + 1\nENDWHILE\nApakah output yang dihasilkan?",
+                    options: ["1, 2, 3", "1, 2, 3, 4", "2, 3, 4", "3, 2, 1"],
+                    answer: 0,
+                    explanation: "x bermula 1 (cetak 1), x jadi 2 (cetak 2), x jadi 3 (cetak 3), x jadi 4 (syarat x<=3 PALSU, berhenti)."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Apakah akibat jika kita TERLUPA menulis arahan kemas kini 'x = x + 1' dalam WHILE-DO?",
+                    options: [
+                        "Berlaku gelung tanpa henti (infinite loop)",
+                        "Gelung tidak berjalan langsung",
+                        "Program akan mencetak nilai 0",
+                        "Sintaks akan dibaiki automatik"
+                    ],
+                    answer: 0,
+                    explanation: "Tanpa kemas kini nilai, syarat akan sentiasa BENAR dan gelung berulang tanpa henti."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Situasi manakah yang PALING SESUAI menggunakan WHILE-DO berbanding FOR?",
+                    options: [
+                        "Meminta pengguna memasukkan PIN keselamatan sehingga betul",
+                        "Mencetak jadual sifir 2 hingga 10",
+                        "Membaca 50 borang jawapan pelajar",
+                        "Menghitung hari dalam seminggu (7 hari)"
+                    ],
+                    answer: 0,
+                    explanation: "Memasukkan PIN keselamatan tidak diketahui berapa kali percubaan yang diperlukan oleh pengguna."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Diberi pseudokod:\ni = 5\nWHILE i > 2 DO\n  i = i - 1\nENDWHILE\nBerapa kalakah ulangan gelung berlaku?",
+                    options: ["3 kali", "5 kali", "2 kali", "4 kali"],
+                    answer: 0,
+                    explanation: "i=5 (>2 BENAR, i jadi 4); i=4 (>2 BENAR, i jadi 3); i=3 (>2 BENAR, i jadi 2); i=2 (>2 PALSU, berhenti). Ulangan = 3 kali."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Dalam carta alir WHILE-DO, anak panah maklum balas selepas melaksanakan arahan kembali ke mana?",
+                    options: [
+                        "Ke simbol keputusan syarat WHILE",
+                        "Ke simbol Mula",
+                        "Ke simbol Tamat",
+                        "Ke simbol Input"
+                    ],
+                    answer: 0,
+                    explanation: "Selepas pelaksanaan arahan, aliran mesti kembali ke ujian syarat untuk menyemak samada ulangan diteruskan."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Diberi pseudokod:\nbil = 0\nWHILE bil < 4 DO\n  bil = bil + 2\nENDWHILE\nApakah nilai akhir 'bil' selepas gelung tamat?",
+                    options: ["4", "2", "6", "0"],
+                    answer: 0,
+                    explanation: "bil=0 -> bil=2 -> bil=4 (4 < 4 adalah PALSU, gelung tamat, nilai akhir bil = 4)."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Apakah perbezaan utama antara kawalan FOR dan WHILE-DO?",
+                    options: [
+                        "FOR mempunyai bilangan ulangan tetap, WHILE-DO berulang berdasarkan syarat BENAR",
+                        "WHILE-DO tidak boleh menggunakan nombor",
+                        "FOR hanya digunakan dalam carta alir",
+                        "Tiada perbezaan langsung"
+                    ],
+                    answer: 0,
+                    explanation: "FOR digunakan bila bilangan ulangan diketahui, WHILE-DO digunakan bila ulangan bergantung kepada syarat."
+                },
+                {
+                    topic: "WHILE-DO",
+                    question: "Diberi pseudokod:\nn = 1\nWHILE n < 5 DO\n  n = n * 2\nENDWHILE\nApakah nilai akhir 'n'?",
+                    options: ["8", "4", "5", "16"],
+                    answer: 0,
+                    explanation: "n=1 (<5, n=2) -> n=2 (<5, n=4) -> n=4 (<5, n=8) -> n=8 (8<5 PALSU, gelung tamat). Nilai n = 8."
+                }
+            ],
+            nested: [
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Apakah yang dimaksudkan dengan struktur kawalan pilihan bersarang (Nested Selection)?",
+                    options: [
+                        "Struktur kawalan pilihan yang wujud di dalam struktur kawalan pilihan yang lain",
+                        "Struktur kawalan ulangan yang berjalan serentak",
+                        "Penggunaan dua gelung FOR dalam satu program",
+                        "Pilihan yang tidak memerlukan sebarang syarat"
+                    ],
+                    answer: 0,
+                    explanation: "Pilihan bersarang bermaksud terdapat struktur IF-ELSE di dalam cabang IF-ELSE yang lain."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Diberi pseudokod:\nIF umur >= 12 THEN\n  IF tinggi >= 140 THEN\n    CETAK 'Layak'\n  ELSE\n    CETAK 'Tinggi tidak cukup'\n  ENDIF\nELSE\n  CETAK 'Umur tidak cukup'\nENDIF\n\nJika umur = 13 dan tinggi = 135, apakah output?",
+                    options: [
+                        "Tinggi tidak cukup",
+                        "Layak",
+                        "Umur tidak cukup",
+                        "Tiada output"
+                    ],
+                    answer: 0,
+                    explanation: "Umur 13 >= 12 (BENAR). Kemudian semak tinggi 135 >= 140 (PALSU) -> Cetak 'Tinggi tidak cukup'."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Berdasarkan pseudokod soalan sebelum ini, jika umur = 10 dan tinggi = 150, apakah output?",
+                    options: [
+                        "Umur tidak cukup",
+                        "Layak",
+                        "Tinggi tidak cukup",
+                        "Layak dan Umur tidak cukup"
+                    ],
+                    answer: 0,
+                    explanation: "Umur 10 >= 12 adalah (PALSU). Cabang ELSE luar dilaksanakan terus mencetak 'Umur tidak cukup'."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Mengapakah pilihan bersarang digunakan dalam pembangunan algoritma?",
+                    options: [
+                        "Untuk menguji beberapa syarat secara berperingkat / berhierarki",
+                        "Untuk mempercepatkan kelajuan komputer secara fizikal",
+                        "Untuk mengelakkan penggunaan pemboleh ubah",
+                        "Kerana ia mengurangkan saiz fail program"
+                    ],
+                    answer: 0,
+                    explanation: "Pilihan bersarang membolehkan keputusan dibuat secara terperinci mengikut lapisan syarat."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Diberi pseudokod:\nIF markah >= 50 THEN\n  IF markah >= 80 THEN\n    CETAK 'Cemerlang'\n  ELSE\n    CETAK 'Lulus'\n  ENDIF\nELSE\n  CETAK 'Gagal'\nENDIF\nApakah keputusan bagi markah = 65?",
+                    options: ["Lulus", "Cemerlang", "Gagal", "Tiada Keputusan"],
+                    answer: 0,
+                    explanation: "65 >= 50 (BENAR). Kemudian 65 >= 80 (PALSU) -> Cabang ELSE dalaman mencetak 'Lulus'."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Dalam carta alir pilihan bersarang, di manakah kedudukan simbol keputusan kedua diletakkan?",
+                    options: [
+                        "Di dalam salah satu cabang (BENAR / PALSU) daripada simbol keputusan pertama",
+                        "Di luar carta alir sepenuhnya",
+                        "Di antara simbol Mula dan Tamat sahaja",
+                        "Di dalam simbol penyedia data"
+                    ],
+                    answer: 0,
+                    explanation: "Simbol keputusan kedua berada di dalam laluan cabang keputusan utama."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Jika Syarat Pertama (luar) adalah PALSU dalam pilihan bersarang, apakah yang berlaku kepada Syarat Kedua (dalam)?",
+                    options: [
+                        "Syarat Kedua tidak akan diuji langsung",
+                        "Syarat Kedua diuji secara automatik",
+                        "Program mencetak ralat",
+                        "Syarat Kedua menjadi BENAR"
+                    ],
+                    answer: 0,
+                    explanation: "Syarat dalaman hanya diakses jika cabang yang mengandunginya dimasuki."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Berdasarkan pseudokod markah di soalan 5, apakah output jika markah = 85?",
+                    options: ["Cemerlang", "Lulus", "Gagal", "Cemerlang & Lulus"],
+                    answer: 0,
+                    explanation: "85 >= 50 (BENAR) dan 85 >= 80 (BENAR) -> Cetak 'Cemerlang'."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Situasi manakah yang memerlukan pilihan bersarang?",
+                    options: [
+                        "Kelayakan masuk taman tema berdasarkan umur dan ketinggian murid",
+                        "Menambah 2 nombor bersama",
+                        "Mencetak nombor 1 hingga 10",
+                        "Menentukan hari dalam seminggu"
+                    ],
+                    answer: 0,
+                    explanation: "Menyemak kelayakan mengikut umur dahulu, kemudian mengikut ketinggian adalah situasi pilihan bersarang."
+                },
+                {
+                    topic: "PILIHAN BERSARANG",
+                    question: "Berapakah bilangan minimum simbol keputusan (diamond) dalam carta alir pilihan bersarang?",
+                    options: ["Sekurang-kurangnya 2 simbol keputusan", "1 simbol keputusan", "0 simbol", "5 simbol"],
+                    answer: 0,
+                    explanation: "Memandangkan terdapat pilihan dalam pilihan, sekurang-kurangnya 2 simbol keputusan diperlukan."
+                }
+            ],
+            debug: [
+                {
+                    topic: "DEBUGGING",
+                    question: "Diberi pseudokod:\ni = 1\nWHILE i <= 5 DO\n  CETAK i\nENDWHILE\nApakah ralat yang terdapat dalam pseudokod ini?",
+                    options: [
+                        "Ralat logik: Tiada kemas kini nilai 'i' menyebabkan gelung tanpa henti",
+                        "Ralat sintaks: Penggunaan kata kunci WHILE yang salah",
+                        "Ralat jenis data pada pemboleh ubah i",
+                        "Tiada sebarang ralat"
+                    ],
+                    answer: 0,
+                    explanation: "Nilai 'i' kekal 1 dan sentiasa <= 5, menyebabkan program mengalami gelung tanpa henti (infinite loop)."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Diberi pseudokod:\nFOR i = 1 TO 5 STEP 1\n  CETAK i\nNEXT j\nApakah kesalahan yang perlu dibaiki?",
+                    options: [
+                        "Tukarkan 'NEXT j' kepada 'NEXT i' supaya pemboleh ubah penuding sepadan",
+                        "Tukarkan 'STEP 1' kepada 'STEP -1'",
+                        "Buang baris CETAK i",
+                        "Tukarkan FOR kepada WHILE"
+                    ],
+                    answer: 0,
+                    explanation: "Pemboleh ubah penuding penamat 'NEXT j' tidak sepadan dengan penuding awal 'FOR i'."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Seorang murid ingin mengira purata 3 nombor: purata = a + b + c / 3. Apakah ralat logik pada rumus ini?",
+                    options: [
+                        "Kurungan ditinggalkan; sepatutnya purata = (a + b + c) / 3",
+                        "Simbol '/' sepatutnya ditukar kepada '*'",
+                        "Pemboleh ubah c tidak boleh digunakan",
+                        "Purata tidak boleh dibahagikan dengan 3"
+                    ],
+                    answer: 0,
+                    explanation: "Mengikut tertib operasi (BODMAS), c/3 dilaksanakan dahulu. Kurungan diperlukan supaya penjumlahan dibuat dahulu."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Diberi pseudokod:\nx = 10\nWHILE x > 0 DO\n  x = x + 1\nENDWHILE\nMengapakah program ini tidak akan berhenti?",
+                    options: [
+                        "Kerana nilai x bertambah (11, 12...), maka x > 0 sentiasa BENAR",
+                        "Kerana nilai x tidak mempunyai pemboleh ubah",
+                        "Kerana kata kunci ENDWHILE tidak disokong",
+                        "Kerana x bermula dengan nilai 10"
+                    ],
+                    answer: 0,
+                    explanation: "Apabila x bertambah, nilainya sentiasa lebih besar daripada 0, maka syarat tidak akan pernah menjadi PALSU."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Dalam carta alir, simbol manakah yang SALAH jika digunakan untuk menguji syarat?",
+                    options: [
+                        "Segiempat tepat (Process block)",
+                        "Rombus (Decision block)",
+                        "Oval (Start/Stop)",
+                        "Parallelogram (Input/Output)"
+                    ],
+                    answer: 0,
+                    explanation: "Pengujian syarat mesti menggunakan simbol Rombus (Decision), bukannya Segiempat Tepat."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Diberi pseudokod:\nFOR count = 5 TO 1\n  CETAK count\nNEXT count\nMengapakah gelung ini tidak berfungsi seperti yang diharapkan?",
+                    options: [
+                        "Kerana tiada 'STEP -1' untuk pembilangan menurun",
+                        "Kerana count tidak diisytiharkan",
+                        "Kerana kata kunci CETAK tidak boleh digunakan",
+                        "Kerana nombor 5 lebih besar daripada 1"
+                    ],
+                    answer: 0,
+                    explanation: "Secara lalai FOR menambah +1. Untuk membilang secara menurun dari 5 ke 1, STEP -1 mesti dinyatakan."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Apakah maksud 'Ralat Logik' dalam pembangunan algoritma?",
+                    options: [
+                        "Ralat yang menyebabkan program memberi hasil yang salah walaupun boleh dijalankan",
+                        "Ralat ejaan pada tatabahasa pseudokod",
+                        "Kerusakan fizikal pada perkakasan komputer",
+                        "Kehilangan bekalan kuasa elektrik"
+                    ],
+                    answer: 0,
+                    explanation: "Ralat logik berlaku apabila alur pemikiran algoritma salah, menghasilkan output tidak tepat."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Apakah kaedah terbaik untuk mengesan ralat logik dalam pseudokod secara manual?",
+                    options: [
+                        "Melakukan Semakan Meja (Dry Run) menggunakan jadual penjejakan",
+                        "Padam semua kod dan tulis semula",
+                        "Menukar komputer baharu",
+                        "Membaca pseudokod dari bawah ke atas"
+                    ],
+                    answer: 0,
+                    explanation: "Dry Run dengan jadual penjejakan nilai membantu menjejak perubahan pemboleh ubah dari baris ke baris."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Carta alir menunjukkan anak panah keputusan BENAR mengarah kembali ke Mula. Apakah ralatnya?",
+                    options: [
+                        "Gelung tidak boleh kembali ke simbol Mula; sepatutnya kembali ke ujian syarat",
+                        "Anak panah tidak boleh dilukis lurus",
+                        "Simbol Mula tidak boleh digunakan dua kali",
+                        "Tiada ralat, itu aliran biasa"
+                    ],
+                    answer: 0,
+                    explanation: "Aliran maklum balas ulangan mesti kembali ke simbol pengujian syarat, bukannya penetapan Mula."
+                },
+                {
+                    topic: "DEBUGGING",
+                    question: "Diberi: IF markah >= 40 THEN CETAK 'Gagal' ELSE CETAK 'Lulus'. Apakah ralat pada kod ini?",
+                    options: [
+                        "Output 'Gagal' dan 'Lulus' adalah terbalik dari segi logik",
+                        "Markah 40 adalah tidak sah",
+                        "Kata kunci THEN tidak boleh digunakan",
+                        "Tiada ralat"
+                    ],
+                    answer: 0,
+                    explanation: "Secara logik, jika markah >= 40, keputusan sepatutnya 'Lulus', bukannya 'Gagal'."
+                }
+            ]
+        };
+
+        // GLOBAL GAME STATE OBJECT (Single State Mandate)
+        let gameState = {
+            screen: "home", // "home", "topics", "game", "result"
+            selectedTopic: "for", // "for", "while", "nested", "debug", "mixed"
+            questions: [],
+            questionIndex: 0, // 0 to 9
+            score: 0,
+            lives: 3,
+            coins: 0,
+            correct: 0,
+            wrong: 0,
+            gamePaused: false,
+            gameRunning: false,
+            currentGateIndex: 0 // 0, 1, 2
+        };
+
+        // CANVAS & GAME ENGINE VARS
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Player (Byte)
+        let player = {
+            x: 80,
+            y: 300,
+            width: 36,
+            height: 48,
+            vx: 0,
+            vy: 0,
+            speed: 5.5,
+            jumpPower: -12.5,
+            grounded: false,
+            facing: "right",
+            animFrame: 0
+        };
+
+        // Inputs State
+        const keys = {
+            left: false,
+            right: false,
+            jump: false
+        };
+
+        // Level Design Static Arrays
+        let levelWidth = 2400;
+        let cameraX = 0;
+
+        let platforms = [];
+        let coinsList = [];
+        let gatesList = [];
+        let finishPortal = { x: 2220, y: 310, width: 50, height: 80 };
+
+        // SCREEN NAVIGATION
+        function showScreen(screenName) {
+            gameState.screen = screenName;
+
+            // Hide all screen DOMs
+            document.getElementById("homeScreen").classList.add("hidden");
+            document.getElementById("topicsScreen").classList.add("hidden");
+            document.getElementById("gameScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.add("hidden");
+
+            // Hide Modals
+            document.getElementById("howToModal").classList.add("hidden");
+            document.getElementById("pauseModal").classList.add("hidden");
+            document.getElementById("questionModal").classList.add("hidden");
+            document.getElementById("gameOverModal").classList.add("hidden");
+
+            if (screenName === "home") {
+                document.getElementById("homeScreen").classList.remove("hidden");
+                gameState.gameRunning = false;
+            } else if (screenName === "topics") {
+                document.getElementById("topicsScreen").classList.remove("hidden");
+                gameState.gameRunning = false;
+            } else if (screenName === "game") {
+                document.getElementById("gameScreen").classList.remove("hidden");
+                resizeCanvas();
+                gameState.gameRunning = true;
+            } else if (screenName === "result") {
+                document.getElementById("resultScreen").classList.remove("hidden");
+                gameState.gameRunning = false;
+                renderResultScreen();
+            }
+        }
+
+        function initTopicQuestions(topicKey) {
+            gameState.selectedTopic = topicKey;
+            gameState.questionIndex = 0;
+            gameState.score = 0;
+            gameState.lives = 3;
+            gameState.coins = 0;
+            gameState.correct = 0;
+            gameState.wrong = 0;
+            gameState.currentGateIndex = 0;
+            gameState.gamePaused = false;
+
+            let topicTitleDisplay = "FOR";
+            let pool = [];
+
+            if (topicKey === "for") {
+                pool = [...questionDatabase.for];
+                topicTitleDisplay = "FOR";
+            } else if (topicKey === "while") {
+                pool = [...questionDatabase.while];
+                topicTitleDisplay = "WHILE-DO";
+            } else if (topicKey === "nested") {
+                pool = [...questionDatabase.nested];
+                topicTitleDisplay = "PILIHAN BERSARANG";
+            } else if (topicKey === "debug") {
+                pool = [...questionDatabase.debug];
+                topicTitleDisplay = "DEBUGGING";
+            } else if (topicKey === "mixed") {
+                pool = [
+                    ...questionDatabase.for,
+                    ...questionDatabase.while,
+                    ...questionDatabase.nested,
+                    ...questionDatabase.debug
+                ];
+                topicTitleDisplay = "CAMPURAN";
+            }
+
+            // Shuffle pool and select 10 questions
+            pool.sort(() => Math.random() - 0.5);
+            gameState.questions = pool.slice(0, 10);
+
+            // Update HUD
+            document.getElementById("hudTopic").textContent = topicTitleDisplay;
+            updateHUD();
+
+            // Build Level Platforms, Coins, and Question Gates
+            setupLevelLayout();
+
+            // Reset Player
+            player.x = 80;
+            player.y = 300;
+            player.vx = 0;
+            player.vy = 0;
+
+            showScreen("game");
+        }
+
+        function setupLevelLayout() {
+            // Platforms
+            platforms = [
+                // Ground segments with small gaps
+                { x: 0, y: 420, w: 650, h: 100 },
+                { x: 720, y: 420, w: 650, h: 100 },
+                { x: 1440, y: 420, w: 960, h: 100 },
+
+                // Floating elevated platforms
+                { x: 200, y: 320, w: 140, h: 20 },
+                { x: 400, y: 260, w: 140, h: 20 },
+
+                { x: 800, y: 330, w: 120, h: 20 },
+                { x: 980, y: 270, w: 140, h: 20 },
+
+                { x: 1520, y: 330, w: 130, h: 20 },
+                { x: 1720, y: 260, w: 150, h: 20 },
+                { x: 1950, y: 320, w: 140, h: 20 }
+            ];
+
+            // Coins placement
+            coinsList = [
+                { x: 230, y: 280, collected: false },
+                { x: 270, y: 280, collected: false },
+                { x: 430, y: 220, collected: false },
+                { x: 470, y: 220, collected: false },
+                { x: 680, y: 380, collected: false },
+
+                { x: 830, y: 290, collected: false },
+                { x: 1010, y: 230, collected: false },
+                { x: 1050, y: 230, collected: false },
+                { x: 1380, y: 380, collected: false },
+
+                { x: 1550, y: 290, collected: false },
+                { x: 1750, y: 220, collected: false },
+                { x: 1980, y: 280, collected: false },
+                { x: 2150, y: 380, collected: false }
+            ];
+
+            // 3 Question Gates along stage
+            // Gate 1 asks Q1..Q3 (Index 0..2)
+            // Gate 2 asks Q4..Q6 (Index 3..5)
+            // Gate 3 asks Q7..Q10 (Index 6..9)
+            gatesList = [
+                {
+                    x: 600,
+                    y: 220,
+                    w: 30,
+                    h: 200,
+                    gateIndex: 0,
+                    unlocked: false,
+                    targetQuestions: [0, 1, 2],
+                    label: "GATE 1"
+                },
+                {
+                    x: 1300,
+                    y: 220,
+                    w: 30,
+                    h: 200,
+                    gateIndex: 1,
+                    unlocked: false,
+                    targetQuestions: [3, 4, 5],
+                    label: "GATE 2"
+                },
+                {
+                    x: 2050,
+                    y: 220,
+                    w: 30,
+                    h: 200,
+                    gateIndex: 2,
+                    unlocked: false,
+                    targetQuestions: [6, 7, 8, 9],
+                    label: "GATE 3"
+                }
+            ];
+        }
+
+        function updateHUD() {
+            document.getElementById("hudLives").textContent = gameState.lives;
+            document.getElementById("hudScore").textContent = gameState.score;
+            document.getElementById("hudCoins").textContent = gameState.coins;
+            document.getElementById("hudQuestionProgress").textContent = `${gameState.questionIndex}/10`;
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            if (!container) return;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        window.addEventListener("keydown", (e) => {
+            if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = true;
+            if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = true;
+            if ((e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") && !e.repeat) {
+                keys.jump = true;
+            }
+        });
+
+        window.addEventListener("keyup", (e) => {
+            if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
+            if (e.code === "ArrowRight" || e.code === "KeyD") keys.right = false;
+            if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") keys.jump = false;
+        });
+
+        // Touch buttons helper
+        function setupTouchBtn(btnId, keyProp) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+
+            const startAction = (e) => {
+                e.preventDefault();
+                keys[keyProp] = true;
+            };
+            const endAction = (e) => {
+                e.preventDefault();
+                keys[keyProp] = false;
+            };
+
+            btn.addEventListener("pointerdown", startAction);
+            btn.addEventListener("pointerup", endAction);
+            btn.addEventListener("pointercancel", endAction);
+            btn.addEventListener("mouseleave", endAction);
+        }
+
+        setupTouchBtn("leftBtn", "left");
+        setupTouchBtn("rightBtn", "right");
+        setupTouchBtn("jumpBtn", "jump");
+
+        function updateGamePhysics() {
+            if (!gameState.gameRunning || gameState.gamePaused) return;
+
+            // Horizontal Movement
+            if (keys.left) {
+                player.vx = -player.speed;
+                player.facing = "left";
+            } else if (keys.right) {
+                player.vx = player.speed;
+                player.facing = "right";
+            } else {
+                player.vx *= 0.8; // Friction
+                if (Math.abs(player.vx) < 0.1) player.vx = 0;
+            }
+
+            // Jump
+            if (keys.jump) {
+                if (player.grounded) {
+                    player.vy = player.jumpPower;
+                    player.grounded = false;
+                    sfx.jump();
+                }
+                keys.jump = false; // consume jump press
+            }
+
+            // Gravity
+            player.vy += 0.55;
+            if (player.vy > 12) player.vy = 12;
+
+            // Apply X Movement
+            player.x += player.vx;
+
+            // World Left Limit
+            if (player.x < 0) player.x = 0;
+
+            // Gate Collision (Horizontal Stop)
+            for (let gate of gatesList) {
+                if (!gate.unlocked) {
+                    if (
+                        player.x + player.width > gate.x &&
+                        player.x < gate.x + gate.w &&
+                        player.y + player.height > gate.y &&
+                        player.y < gate.y + gate.h
+                    ) {
+                        // Stop at Gate & Trigger Question Modal
+                        if (player.vx > 0) player.x = gate.x - player.width;
+                        if (player.vx < 0) player.x = gate.x + gate.w;
+                        player.vx = 0;
+
+                        triggerQuestionModal(gate);
+                        return;
+                    }
+                }
+            }
+
+            // Apply Y Movement
+            player.y += player.vy;
+            player.grounded = false;
+
+            // Platform Collision Detection
+            for (let plat of platforms) {
+                if (
+                    player.x + player.width > plat.x &&
+                    player.x < plat.x + plat.w &&
+                    player.y + player.height >= plat.y &&
+                    player.y + player.height <= plat.y + 18 &&
+                    player.vy >= 0
+                ) {
+                    player.grounded = true;
+                    player.vy = 0;
+                    player.y = plat.y - player.height;
+                }
+            }
+
+            // Pit Fall Check (Respawn)
+            if (player.y > 550) {
+                playerRespawn();
+            }
+
+            // Coin Collection Collision
+            for (let coin of coinsList) {
+                if (!coin.collected) {
+                    let dist = Math.hypot((player.x + player.width / 2) - coin.x, (player.y + player.height / 2) - coin.y);
+                    if (dist < 28) {
+                        coin.collected = true;
+                        gameState.coins += 1;
+                        gameState.score += 5;
+                        sfx.coin();
+                        updateHUD();
+                    }
+                }
+            }
+
+            // Finish Portal Check
+            if (
+                player.x + player.width > finishPortal.x &&
+                player.x < finishPortal.x + finishPortal.width &&
+                player.y + player.height > finishPortal.y
+            ) {
+                // Verify all questions completed
+                if (gameState.questionIndex >= 10) {
+                    showScreen("result");
+                }
+            }
+
+            // Smooth Camera Follow
+            const targetCamX = player.x - canvas.width / 3;
+            cameraX += (targetCamX - cameraX) * 0.1;
+            if (cameraX < 0) cameraX = 0;
+            if (cameraX > levelWidth - canvas.width) cameraX = levelWidth - canvas.width;
+
+            // Animation Frame
+            player.animFrame += 0.15;
+        }
+
+        function playerRespawn() {
+            gameState.lives -= 1;
+            sfx.wrong();
+            updateHUD();
+
+            if (gameState.lives <= 0) {
+                document.getElementById("gameOverModal").classList.remove("hidden");
+                gameState.gameRunning = false;
+            } else {
+                // Respawn near current gate or start
+                if (gameState.currentGateIndex === 0) {
+                    player.x = 80;
+                    player.y = 300;
+                } else {
+                    const prevGate = gatesList[gameState.currentGateIndex - 1];
+                    player.x = prevGate.x + 50;
+                    player.y = 300;
+                }
+                player.vx = 0;
+                player.vy = 0;
+            }
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+
+            // Draw Background Digital Grid Lines
+            ctx.strokeStyle = "rgba(0, 243, 255, 0.05)";
+            ctx.lineWidth = 1;
+            for (let x = 0; x < levelWidth; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+
+            // Draw Platforms (Neon Digital Theme)
+            for (let plat of platforms) {
+                ctx.fillStyle = "#0c1322";
+                ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+
+                // Neon Top Edge
+                ctx.fillStyle = "#00f3ff";
+                ctx.shadowColor = "#00f3ff";
+                ctx.shadowBlur = 8;
+                ctx.fillRect(plat.x, plat.y, plat.w, 4);
+                ctx.shadowBlur = 0;
+            }
+
+            // Draw Coins
+            for (let coin of coinsList) {
+                if (!coin.collected) {
+                    ctx.save();
+                    ctx.translate(coin.x, coin.y);
+                    const floatY = Math.sin(Date.now() * 0.005 + coin.x) * 3;
+
+                    ctx.fillStyle = "#ffcc00";
+                    ctx.shadowColor = "#ffcc00";
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(0, floatY, 8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = "#000000";
+                    ctx.font = "bold 9px sans-serif";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("1", 0, floatY);
+
+                    ctx.restore();
+                }
+            }
+
+            // Draw Question Gates
+            for (let gate of gatesList) {
+                ctx.save();
+                if (!gate.unlocked) {
+                    ctx.fillStyle = "rgba(255, 0, 85, 0.2)";
+                    ctx.strokeStyle = "#ff0055";
+                    ctx.shadowColor = "#ff0055";
+                    ctx.shadowBlur = 12;
+                } else {
+                    ctx.fillStyle = "rgba(0, 255, 102, 0.1)";
+                    ctx.strokeStyle = "#00ff66";
+                    ctx.shadowColor = "#00ff66";
+                    ctx.shadowBlur = 8;
+                }
+
+                ctx.lineWidth = 3;
+                ctx.fillRect(gate.x, gate.y, gate.w, gate.h);
+                ctx.strokeRect(gate.x, gate.y, gate.w, gate.h);
+
+                // Label on Gate
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = gate.unlocked ? "#00ff66" : "#ffffff";
+                ctx.font = "bold 11px 'Press Start 2P', monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(gate.unlocked ? "OPEN" : "LOCK", gate.x + gate.w / 2, gate.y - 10);
+
+                ctx.restore();
+            }
+
+            // Draw Finish Portal
+            ctx.save();
+            ctx.fillStyle = "rgba(157, 0, 255, 0.3)";
+            ctx.strokeStyle = "#9d00ff";
+            ctx.lineWidth = 4;
+            ctx.shadowColor = "#9d00ff";
+            ctx.shadowBlur = 15;
+            ctx.fillRect(finishPortal.x, finishPortal.y, finishPortal.width, finishPortal.height);
+            ctx.strokeRect(finishPortal.x, finishPortal.y, finishPortal.width, finishPortal.height);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 10px 'Press Start 2P', monospace";
+            ctx.textAlign = "center";
+            ctx.fillText("FINISH", finishPortal.x + finishPortal.width / 2, finishPortal.y - 12);
+            ctx.restore();
+
+            // Draw Player (BYTE - Original Digital Avatar)
+            ctx.save();
+            ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+            if (player.facing === "left") ctx.scale(-1, 1);
+
+            // Body Frame
+            ctx.fillStyle = "#00f3ff";
+            ctx.shadowColor = "#00f3ff";
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.roundRect(-16, -20, 32, 40, 8);
+            ctx.fill();
+
+            // Head Visor
+            ctx.fillStyle = "#0a0b10";
+            ctx.fillRect(-12, -15, 24, 12);
+
+            // Glowing Eyes
+            ctx.fillStyle = "#00ff66";
+            ctx.shadowColor = "#00ff66";
+            ctx.shadowBlur = 5;
+            ctx.fillRect(-8, -12, 5, 5);
+            ctx.fillRect(3, -12, 5, 5);
+
+            // Cyber Backpack / Antenna
+            ctx.fillStyle = "#9d00ff";
+            ctx.fillRect(-18, -10, 4, 16);
+
+            ctx.restore();
+
+            ctx.restore(); // Restore Camera
+        }
+
+        let activeGateRef = null;
+
+        function triggerQuestionModal(gate) {
+            activeGateRef = gate;
+            gameState.currentGateIndex = gate.gateIndex;
+
+            // Check if current gate questions are already solved
+            if (gameState.questionIndex > gate.targetQuestions[gate.targetQuestions.length - 1]) {
+                gate.unlocked = true;
+                return;
+            }
+
+            sfx.gate();
+            gameState.gamePaused = true;
+            displayCurrentQuestion();
+            document.getElementById("questionModal").classList.remove("hidden");
+        }
+
+        function displayCurrentQuestion() {
+            const q = gameState.questions[gameState.questionIndex];
+            if (!q) return;
+
+            document.getElementById("qModalTopic").textContent = gameState.selectedTopic.toUpperCase();
+            document.getElementById("qModalNumber").textContent = `SOALAN ${gameState.questionIndex + 1} / 10`;
+            document.getElementById("qModalText").textContent = q.question;
+
+            // Reset options & feedback
+            document.getElementById("qFeedbackBox").classList.add("hidden");
+            document.getElementById("continueBtn").classList.add("hidden");
+            document.getElementById("retryAnswerBtn").classList.add("hidden");
+
+            for (let i = 0; i < 4; i++) {
+                const btn = document.getElementById(`optBtn${i}`);
+                btn.disabled = false;
+                btn.className = "btn-cyber p-3 rounded-xl text-left text-sm md:text-base flex items-start space-x-3";
+                btn.querySelector(".opt-text").textContent = q.options[i];
+            }
+        }
+
+        function handleAnswerSelection(optionIndex) {
+            const q = gameState.questions[gameState.questionIndex];
+            if (!q) return;
+
+            // Disable all option buttons
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`optBtn${i}`).disabled = true;
+            }
+
+            const feedbackBox = document.getElementById("qFeedbackBox");
+            const feedbackTitle = document.getElementById("qFeedbackTitle");
+            const feedbackText = document.getElementById("qFeedbackText");
+            feedbackBox.classList.remove("hidden");
+
+            if (optionIndex === q.answer) {
+                // CORRECT
+                sfx.correct();
+                gameState.score += 10;
+                gameState.correct += 1;
+
+                document.getElementById(`optBtn${optionIndex}`).classList.add("bg-green-500/30", "border-green-400");
+                feedbackBox.className = "p-3 rounded-xl text-xs md:text-sm font-medium space-y-1 bg-green-950/80 border border-green-500/50 text-green-200";
+                feedbackTitle.textContent = "✅ JAWAPAN BETUL! (+10 SKOR)";
+                feedbackText.textContent = q.explanation;
+
+                document.getElementById("continueBtn").classList.remove("hidden");
+            } else {
+                // INCORRECT
+                sfx.wrong();
+                gameState.lives -= 1;
+                gameState.wrong += 1;
+
+                document.getElementById(`optBtn${optionIndex}`).classList.add("bg-red-500/30", "border-red-400");
+                document.getElementById(`optBtn${q.answer}`).classList.add("bg-green-500/20", "border-green-500/50");
+
+                feedbackBox.className = "p-3 rounded-xl text-xs md:text-sm font-medium space-y-1 bg-red-950/80 border border-red-500/50 text-red-200";
+                feedbackTitle.textContent = "❌ JAWAPAN SALAH! (-1 NYAWA)";
+                feedbackText.textContent = q.explanation;
+
+                updateHUD();
+
+                if (gameState.lives <= 0) {
+                    document.getElementById("questionModal").classList.add("hidden");
+                    document.getElementById("gameOverModal").classList.remove("hidden");
+                } else {
+                    document.getElementById("retryAnswerBtn").classList.remove("hidden");
+                }
+            }
+
+            updateHUD();
+        }
+
+        // Question Option Click Handlers
+        for (let i = 0; i < 4; i++) {
+            document.getElementById(`optBtn${i}`).addEventListener("click", () => handleAnswerSelection(i));
+        }
+
+        document.getElementById("retryAnswerBtn").addEventListener("click", () => {
+            displayCurrentQuestion();
+        });
+
+        document.getElementById("continueBtn").addEventListener("click", () => {
+            gameState.questionIndex += 1;
+            updateHUD();
+
+            const gate = activeGateRef;
+            if (gate && gameState.questionIndex > gate.targetQuestions[gate.targetQuestions.length - 1]) {
+                // Gate completed! Open gate and resume game
+                gate.unlocked = true;
+                document.getElementById("questionModal").classList.add("hidden");
+                gameState.gamePaused = false;
+            } else {
+                // Load next question at this gate
+                displayCurrentQuestion();
+            }
+        });
+
+        function renderResultScreen() {
+            const topicName = gameState.selectedTopic.toUpperCase();
+            document.getElementById("resTopic").textContent = topicName;
+            document.getElementById("resScore").textContent = gameState.score;
+            document.getElementById("resCorrect").textContent = `${gameState.correct} / 10`;
+
+            const percentage = Math.round((gameState.correct / 10) * 100);
+            document.getElementById("resPercentage").textContent = `${percentage}%`;
+
+            let badgeText = "KEEP PRACTISING!";
+            let badgeClass = "from-slate-600 to-slate-800";
+
+            if (percentage >= 90) {
+                badgeText = "ALGORITHM MASTER";
+                badgeClass = "from-amber-400 to-yellow-600";
+            } else if (percentage >= 80) {
+                badgeText = "LOGIC EXPERT";
+                badgeClass = "from-cyan-400 to-blue-600";
+            } else if (percentage >= 70) {
+                badgeText = "CODE EXPLORER";
+                badgeClass = "from-purple-500 to-indigo-600";
+            } else if (percentage >= 60) {
+                badgeText = "ALGORITHM ROOKIE";
+                badgeClass = "from-emerald-500 to-teal-700";
+            }
+
+            const badgeElem = document.getElementById("resultCategoryBadge");
+            badgeElem.textContent = badgeText;
+            badgeElem.className = `inline-block px-4 py-2 rounded-xl bg-gradient-to-r ${badgeClass} text-white font-bold text-lg shadow-lg`;
+        }
+
+        // HOME SCREEN BUTTONS
+        document.getElementById("startBtn").addEventListener("click", () => showScreen("topics"));
+        document.getElementById("topicBtn").addEventListener("click", () => showScreen("topics"));
+        document.getElementById("howToBtn").addEventListener("click", () => {
+            document.getElementById("howToModal").classList.remove("hidden");
+        });
+        document.getElementById("closeHowToBtn").addEventListener("click", () => {
+            document.getElementById("howToModal").classList.add("hidden");
+        });
+
+        // TOPIC SELECT BUTTONS
+        document.getElementById("forBtn").addEventListener("click", () => initTopicQuestions("for"));
+        document.getElementById("whileBtn").addEventListener("click", () => initTopicQuestions("while"));
+        document.getElementById("nestedBtn").addEventListener("click", () => initTopicQuestions("nested"));
+        document.getElementById("debugBtn").addEventListener("click", () => initTopicQuestions("debug"));
+        document.getElementById("mixedBtn").addEventListener("click", () => initTopicQuestions("mixed"));
+        document.getElementById("backHomeBtn").addEventListener("click", () => showScreen("home"));
+
+        // GAME HUD BUTTONS
+        document.getElementById("pauseBtn").addEventListener("click", () => {
+            gameState.gamePaused = true;
+            document.getElementById("pauseModal").classList.remove("hidden");
+        });
+
+        // PAUSE MODAL BUTTONS
+        document.getElementById("resumeBtn").addEventListener("click", () => {
+            document.getElementById("pauseModal").classList.add("hidden");
+            gameState.gamePaused = false;
+        });
+        document.getElementById("restartBtn").addEventListener("click", () => {
+            document.getElementById("pauseModal").classList.add("hidden");
+            initTopicQuestions(gameState.selectedTopic);
+        });
+        document.getElementById("topicFromPauseBtn").addEventListener("click", () => {
+            document.getElementById("pauseModal").classList.add("hidden");
+            showScreen("topics");
+        });
+
+        // GAME OVER BUTTONS
+        document.getElementById("gameOverTryAgainBtn").addEventListener("click", () => {
+            document.getElementById("gameOverModal").classList.add("hidden");
+            initTopicQuestions(gameState.selectedTopic);
+        });
+        document.getElementById("gameOverTopicBtn").addEventListener("click", () => {
+            document.getElementById("gameOverModal").classList.add("hidden");
+            showScreen("topics");
+        });
+
+        // RESULT SCREEN BUTTONS
+        document.getElementById("playAgainBtn").addEventListener("click", () => initTopicQuestions(gameState.selectedTopic));
+        document.getElementById("chooseTopicBtn").addEventListener("click", () => showScreen("topics"));
+        document.getElementById("homeBtn").addEventListener("click", () => showScreen("home"));
+
+        // SINGLE UNIFIED GAME LOOP (Single Loop Mandate)
+        function gameLoop() {
+            if (gameState.screen === "game") {
+                updateGamePhysics();
+                renderCanvas();
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function() {
+            resizeCanvas();
+            showScreen("home");
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
