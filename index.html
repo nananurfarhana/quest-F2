@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASK Tingkatan 2 - Bab 3: Kod Arahan | Revision Quiz Show</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@600;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0b1120;
+            color: #f8fafc;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Glassmorphism & Card Styles */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card-active {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .correct-answer-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%) !important;
+            border: 3px solid #10b981 !important;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+            transform: scale(1.02);
+        }
+
+        .dimmed-card {
+            opacity: 0.4;
+            filter: grayscale(40%);
+        }
+
+        /* Custom Pulse Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+
+        .glow-button {
+            animation: pulse-glow 3s infinite;
+        }
+
+        @keyframes reveal-pop {
+            0% { transform: scale(0.95); opacity: 0; }
+            70% { transform: scale(1.02); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: reveal-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Hide scrollbars for clean presentation */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden bg-slate-950 text-slate-100">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="w-full bg-slate-900/80 border-b border-slate-800 px-6 py-3 flex items-center justify-between sticky top-0 z-50 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg font-black text-xl shadow-lg shadow-indigo-500/30">
+                <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg text-slate-100 leading-tight">ASK TINGKATAN 2</h1>
+                <p class="text-xs text-indigo-400 font-bold uppercase tracking-wider">Bab 3: Kod Arahan • Quiz Show</p>
+            </div>
+        </div>
+
+        <!-- Right Side Controls for Teacher -->
+        <div class="flex items-center space-x-4">
+            <!-- Fullscreen Toggle -->
+            <button onclick="toggleFullScreen()" title="Skrin Penuh (F11)" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-2 text-sm font-semibold">
+                <i class="fa-solid fa-expand"></i>
+                <span class="hidden sm:inline">Skrin Penuh</span>
+            </button>
+            
+            <!-- Question Jump Drawer Button -->
+            <button onclick="toggleJumpModal()" title="Pilih Soalan" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700 transition flex items-center space-x-2 text-sm font-semibold">
+                <i class="fa-solid fa-list-ol"></i>
+                <span class="hidden sm:inline">Senarai Soalan</span>
+            </button>
+
+            <!-- Presenter Shortcut Indicator -->
+            <div class="hidden lg:flex items-center space-x-2 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-400">
+                <i class="fa-solid fa-keyboard text-indigo-400"></i>
+                <span>Tekan <kbd class="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">SPACE</kbd> / <kbd class="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">ENTER</kbd></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full">
+
+        <!-- ========================================== -->
+        <!-- 1. START SCREEN -->
+        <!-- ========================================== -->
+        <section id="start-screen" class="w-full text-center py-8 px-4 flex flex-col items-center justify-center space-y-8 animate-pop">
+            
+            <div class="inline-flex items-center space-x-3 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 px-5 py-2 rounded-full font-bold text-sm sm:text-base tracking-wide uppercase shadow-inner">
+                <i class="fa-solid fa-graduation-cap text-lg"></i>
+                <span>Aktiviti Ulang Kaji Interaktif Kelas</span>
+            </div>
+
+            <div class="space-y-3 max-w-4xl">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-400 uppercase tracking-widest">
+                    ASAS SAINS KOMPUTER TINGKATAN 2
+                </h2>
+                <h1 class="text-4xl sm:text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-sky-300 to-emerald-400 leading-tight py-1 drop-shadow-sm">
+                    BAB 3: KOD ARAHAN
+                </h1>
+                <p class="text-xl sm:text-2xl font-semibold text-slate-300 pt-2">
+                    REVISION QUIZ SHOW
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-2xl py-4">
+                <div class="glass-card p-4 rounded-2xl border border-slate-700/60 text-center">
+                    <div class="text-3xl font-black text-amber-400 mb-1">30</div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Soalan Bertulis</div>
+                </div>
+                <div class="glass-card p-4 rounded-2xl border border-slate-700/60 text-center">
+                    <div class="text-3xl font-black text-emerald-400 mb-1"><i class="fa-solid fa-comments"></i></div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lisan & Perbincangan</div>
+                </div>
+                <div class="glass-card p-4 rounded-2xl border border-slate-700/60 text-center">
+                    <div class="text-3xl font-black text-sky-400 mb-1"><i class="fa-solid fa-book"></i></div>
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider">Buku Teks ASK T2</div>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button onclick="startQuiz()" class="glow-button bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-2xl sm:text-3xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center space-x-4 border-2 border-indigo-400/30">
+                    <span>🚀 MULA ULANG KAJI</span>
+                    <i class="fa-solid fa-arrow-right text-xl"></i>
+                </button>
+            </div>
+
+            <p class="text-sm text-slate-500 font-medium pt-2">
+                <i class="fa-solid fa-circle-info mr-1"></i> Guru boleh menekan kekunci <kbd class="bg-slate-800 px-2 py-1 rounded text-slate-300">Spacebar</kbd> pada laptop untuk meneruskan.
+            </p>
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- 2. QUESTION & REVEAL SCREEN -->
+        <!-- ========================================== -->
+        <section id="quiz-screen" class="w-full hidden flex-col space-y-6">
+            
+            <!-- PROGRESS BAR & COUNTER -->
+            <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl space-y-3">
+                <div class="flex justify-between items-center text-sm sm:text-base font-extrabold">
+                    <div class="flex items-center space-x-2 text-indigo-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>BAB 3 • KOD ARAHAN</span>
+                    </div>
+                    <div class="bg-indigo-950/80 text-indigo-300 border border-indigo-700/50 px-4 py-1.5 rounded-full font-mono text-base sm:text-lg">
+                        SOALAN <span id="current-q-num" class="text-white font-black">1</span> / <span id="total-q-num">30</span>
+                    </div>
+                </div>
+
+                <!-- Visual Progress Bar -->
+                <div class="w-full bg-slate-900 rounded-full h-4 overflow-hidden border border-slate-800 p-0.5 shadow-inner">
+                    <div id="progress-bar-fill" class="bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 3.33%;"></div>
+                </div>
+            </div>
+
+            <!-- QUESTION CARD -->
+            <div class="glass-card p-6 sm:p-8 md:p-10 rounded-3xl border border-slate-700/60 shadow-2xl space-y-6">
+                <!-- Topic Tag / Difficulty -->
+                <div class="flex items-center justify-between">
+                    <span id="question-subtopic" class="bg-slate-800 text-sky-300 border border-sky-500/30 font-bold text-xs sm:text-sm px-3.5 py-1.5 rounded-lg uppercase tracking-wider">
+                        3.1 Persekitaran Kod Arahan
+                    </span>
+                    <span class="text-slate-500 text-xs font-semibold">
+                        <i class="fa-solid fa-display mr-1"></i> Paparan Projektor
+                    </span>
+                </div>
+
+                <!-- Question Text (Super Large Typography) -->
+                <h2 id="question-text" class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-100 leading-snug tracking-tight">
+                    Apakah jenis data bagi nilai 25?
+                </h2>
+
+                <!-- Code snippet container if applicable -->
+                <div id="code-block-container" class="hidden my-4">
+                    <pre class="bg-slate-950 border border-slate-800 text-emerald-400 p-4 sm:p-5 rounded-2xl font-mono-code text-lg sm:text-xl overflow-x-auto shadow-inner"><code id="code-snippet-text"></code></pre>
+                </div>
+
+                <!-- OPTIONS CONTAINER (TEXT ONLY - NOT BUTTONS) -->
+                <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- Dynamic option cards will be injected here -->
+                </div>
+            </div>
+
+            <!-- REVEALED ANSWER & EXPLANATION PANEL (HIDDEN BY DEFAULT) -->
+            <div id="explanation-panel" class="hidden animate-pop">
+                <div class="bg-slate-900/90 border-2 border-emerald-500/80 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-4">
+                    
+                    <div class="flex items-center space-x-3 text-emerald-400 font-extrabold text-lg sm:text-xl border-b border-emerald-900/50 pb-3">
+                        <div class="bg-emerald-500/20 p-2 rounded-xl border border-emerald-500/40">
+                            <i class="fa-solid fa-circle-check text-2xl"></i>
+                        </div>
+                        <span>JAWAPAN BETUL</span>
+                    </div>
+
+                    <div id="revealed-correct-option" class="text-xl sm:text-2xl font-black text-white pl-2">
+                        A. Integer
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800">
+                        <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm uppercase tracking-wider mb-1.5">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>Penerangan Ringkas:</span>
+                        </div>
+                        <p id="explanation-text" class="text-lg sm:text-xl text-slate-200 font-medium leading-relaxed pl-2">
+                            Integer ialah jenis data bagi nombor bulat.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- PRIMARY CONTROL BUTTON (REVEAL ANSWER / NEXT QUESTION) -->
+            <div class="pt-2 flex justify-center">
+                <button id="action-btn" onclick="handlePrimaryAction()" class="w-full sm:w-auto glow-button bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xl sm:text-2xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-3 border-2 border-indigo-400/40">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>🔍 REVEAL ANSWER</span>
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- ========================================== -->
+        <!-- 3. FINAL SCREEN -->
+        <!-- ========================================== -->
+        <section id="final-screen" class="w-full hidden text-center py-12 px-4 flex flex-col items-center justify-center space-y-8 animate-pop">
+            
+            <div class="text-6xl sm:text-7xl animate-bounce">
+                🎉
+            </div>
+
+            <div class="space-y-4 max-w-3xl">
+                <h1 class="text-4xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-emerald-400 to-sky-400 leading-tight">
+                    TAHNIAH!
+                </h1>
+                <p class="text-2xl sm:text-3xl font-extrabold text-slate-200">
+                    ANDA TELAH SELESAI ULANG KAJI<br>
+                    <span class="text-indigo-400">BAB 3: KOD ARAHAN</span>
+                </p>
+                <div class="inline-block bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-black text-xl sm:text-2xl px-8 py-3 rounded-full mt-4">
+                    30 SOALAN SELESAI
+                </div>
+            </div>
+
+            <p class="text-lg text-slate-400 max-w-xl">
+                Semua konsep utama jenis data, pemboleh ubah, pemalar, operator, ralat, dan struktur kawalan telah berjaya diulang kaji bersama murid!
+            </p>
+
+            <div class="pt-6">
+                <button onclick="restartQuiz()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-2xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center space-x-4 border-2 border-emerald-400/40">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>🔄 ULANG SEMULA</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- ========================================== -->
+    <!-- QUESTION JUMP MODAL FOR TEACHER -->
+    <!-- ========================================== -->
+    <div id="jump-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+                <h3 class="text-xl font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-list-ol text-indigo-400"></i>
+                    <span>Lompat ke Soalan (Pilihan Guru)</span>
+                </h3>
+                <button onclick="toggleJumpModal()" class="text-slate-400 hover:text-white text-2xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="questions-grid-nav" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-2 overflow-y-auto p-2">
+                <!-- 1 to 30 buttons generated by JS -->
+            </div>
+
+            <div class="border-t border-slate-800 pt-4 mt-4 text-xs text-slate-400 text-center">
+                Pilih mana-mana soalan untuk terus ke soalan tersebut semasa perbincangan.
+            </div>
+        </div>
+    </div>
+
+
+    <!-- FOOTER -->
+    <footer class="w-full bg-slate-950 border-t border-slate-900 px-6 py-3 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <div>
+            <span class="font-bold text-slate-400">Asas Sains Komputer Tingkatan 2</span> • Bab 3 Kod Arahan
+        </div>
+        <div class="flex items-center space-x-4">
+            <span><i class="fa-solid fa-chalkboard-user mr-1 text-indigo-400"></i> Mode Guru & Projektor</span>
+            <span><i class="fa-solid fa-circle-check text-emerald-400 mr-1"></i> 30 Soalan Lengkap</span>
+        </div>
+    </footer>
+
+
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC & QUESTION DATABASE -->
+    <!-- ========================================== -->
+    <script>
+        // Full dataset of 30 questions directly aligned with Form 2 ASK Chapter 3 Textbook
+        const questionsData = [
+            {
+                id: 1,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah jenis data bagi nilai 25?",
+                options: ["A. Integer", "B. Char", "C. Double", "D. Boolean"],
+                answerIndex: 0,
+                answerText: "A. Integer",
+                explanation: "Integer ialah jenis data bagi nombor bulat."
+            },
+            {
+                id: 2,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah jenis data bagi nilai 15.75?",
+                options: ["A. Integer", "B. Boolean", "C. Double", "D. Char"],
+                answerIndex: 2,
+                answerText: "C. Double",
+                explanation: "Double digunakan untuk nilai nombor yang mempunyai bahagian perpuluhan."
+            },
+            {
+                id: 3,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Yang manakah contoh data jenis Char?",
+                options: ["A. \"A\"", "B. 'A'", "C. 65", "D. True"],
+                answerIndex: 1,
+                answerText: "B. 'A'",
+                explanation: "Char mewakili satu aksara."
+            },
+            {
+                id: 4,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "\"Sains Komputer\" ialah contoh data jenis:",
+                options: ["A. Integer", "B. Double", "C. Boolean", "D. String"],
+                answerIndex: 3,
+                answerText: "D. String",
+                explanation: "String ialah rentetan aksara."
+            },
+            {
+                id: 5,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Yang manakah merupakan nilai Boolean?",
+                options: ["A. \"True\"", "B. 1", "C. True", "D. \"Ya\""],
+                answerIndex: 2,
+                answerText: "C. True",
+                explanation: "Boolean mempunyai nilai benar atau palsu, iaitu True atau False."
+            },
+            {
+                id: 6,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah fungsi pemboleh ubah?",
+                options: [
+                    "A. Menyimpan arahan sahaja",
+                    "B. Menyimpan data yang nilainya boleh berubah",
+                    "C. Menentukan warna program",
+                    "D. Menghapuskan semua data"
+                ],
+                answerIndex: 1,
+                answerText: "B. Menyimpan data yang nilainya boleh berubah",
+                explanation: "Pemboleh ubah digunakan untuk menyimpan data dan nilainya boleh berubah."
+            },
+            {
+                id: 7,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah ciri utama pemalar?",
+                options: [
+                    "A. Nilainya sentiasa berubah",
+                    "B. Nilainya tetap dan tidak berubah",
+                    "C. Tidak mempunyai nilai",
+                    "D. Hanya digunakan untuk String"
+                ],
+                answerIndex: 1,
+                answerText: "B. Nilainya tetap dan tidak berubah",
+                explanation: "Pemalar mempunyai nilai yang tetap dan tidak berubah."
+            },
+            {
+                id: 8,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Dalam pengiraan luas atau lilitan bulatan, nilai π sesuai dianggap sebagai:",
+                options: ["A. Pemboleh ubah", "B. Pemalar", "C. Input", "D. Output"],
+                answerIndex: 1,
+                answerText: "B. Pemalar",
+                explanation: "Nilai π merupakan nilai tetap dalam pengiraan bulatan."
+            },
+            {
+                id: 9,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah fungsi input?",
+                options: [
+                    "A. Mengira markah",
+                    "B. Menerima maklumat daripada pengguna",
+                    "C. Memadam data",
+                    "D. Menghentikan atur cara"
+                ],
+                answerIndex: 1,
+                answerText: "B. Menerima maklumat daripada pengguna",
+                explanation: "Input digunakan untuk menerima maklumat daripada pengguna."
+            },
+            {
+                id: 10,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah fungsi output?",
+                options: [
+                    "A. Menerima data pengguna",
+                    "B. Menyimpan pemboleh ubah",
+                    "C. Memaparkan maklumat kepada pengguna",
+                    "D. Membina pemalar"
+                ],
+                answerIndex: 2,
+                answerText: "C. Memaparkan maklumat kepada pengguna",
+                explanation: "Output digunakan untuk memaparkan maklumat kepada pengguna."
+            },
+            {
+                id: 11,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Yang manakah merupakan operator perbandingan?",
+                options: ["A. +", "B. *", "C. >", "D. /"],
+                answerIndex: 2,
+                answerText: "C. >",
+                explanation: "Simbol > digunakan untuk membandingkan dua nilai."
+            },
+            {
+                id: 12,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Diberi:\nx = 10\ny = 5\n\nApakah hasil bagi ungkapan x > y?",
+                codeSnippet: "x = 10\ny = 5\nprint(x > y)",
+                options: ["A. True", "B. False", "C. 10", "D. 5"],
+                answerIndex: 0,
+                answerText: "A. True",
+                explanation: "10 lebih besar daripada 5, maka hasil perbandingan ialah True."
+            },
+            {
+                id: 13,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah hasil bagi ungkapan berikut?",
+                codeSnippet: "8 == 8",
+                options: ["A. False", "B. 8", "C. True", "D. Error"],
+                answerIndex: 2,
+                answerText: "C. True",
+                explanation: "Kedua-dua nilai adalah sama, maka hasil perbandingan ialah True."
+            },
+            {
+                id: 14,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah fungsi operator logik AND?",
+                options: [
+                    "A. Benar jika sekurang-kurangnya satu syarat benar",
+                    "B. Benar jika semua syarat benar",
+                    "C. Menukar benar kepada palsu",
+                    "D. Membandingkan nombor"
+                ],
+                answerIndex: 1,
+                answerText: "B. Benar jika semua syarat benar",
+                explanation: "AND menghasilkan True apabila semua syarat yang terlibat adalah True."
+            },
+            {
+                id: 15,
+                subtopic: "3.1 Persekitaran Kod Arahan",
+                question: "Apakah fungsi operator NOT?",
+                options: [
+                    "A. Menambah dua nilai",
+                    "B. Membandingkan dua nilai",
+                    "C. Menafikan atau membalikkan nilai logik",
+                    "D. Mengulangi arahan"
+                ],
+                answerIndex: 2,
+                answerText: "C. Menafikan atau membalikkan nilai logik",
+                explanation: "NOT menukarkan True kepada False dan False kepada True."
+            },
+            {
+                id: 16,
+                subtopic: "3.1 Ralat Atur Cara",
+                question: "Apakah jenis ralat yang berlaku apabila kod tidak mematuhi sintaks bahasa pengaturcaraan?",
+                options: ["A. Ralat logik", "B. Ralat sintaks", "C. Ralat masa larian", "D. Ralat input"],
+                answerIndex: 1,
+                answerText: "B. Ralat sintaks",
+                explanation: "Ralat sintaks berlaku apabila penulisan kod tidak mematuhi peraturan sintaks."
+            },
+            {
+                id: 17,
+                subtopic: "3.1 Ralat Atur Cara",
+                question: "Atur cara berhenti secara tiba-tiba semasa sedang dilaksanakan. Apakah jenis ralat yang mungkin berlaku?",
+                options: ["A. Ralat sintaks", "B. Ralat logik", "C. Ralat masa larian", "D. Ralat data"],
+                answerIndex: 2,
+                answerText: "C. Ralat masa larian",
+                explanation: "Ralat masa larian berlaku ketika atur cara sedang dilaksanakan."
+            },
+            {
+                id: 18,
+                subtopic: "3.1 Ralat Atur Cara",
+                question: "Atur cara boleh dilaksanakan tetapi menghasilkan output yang salah. Apakah jenis ralat?",
+                options: ["A. Ralat sintaks", "B. Ralat masa larian", "C. Ralat logik", "D. Ralat input"],
+                answerIndex: 2,
+                answerText: "C. Ralat logik",
+                explanation: "Ralat logik menyebabkan atur cara menghasilkan output yang tidak dijangka atau salah."
+            },
+            {
+                id: 19,
+                subtopic: "3.1 Ralat Atur Cara",
+                question: "Antara berikut, kaedah manakah boleh digunakan untuk mengesan ralat logik?",
+                options: ["A. Desk check", "B. Menutup komputer", "C. Menukar monitor", "D. Menambah gambar"],
+                answerIndex: 0,
+                answerText: "A. Desk check",
+                explanation: "Desk check digunakan untuk meneliti pelaksanaan atur cara dan membantu mengesan ralat logik."
+            },
+            {
+                id: 20,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Apakah maksud struktur kawalan jujukan?",
+                options: [
+                    "A. Arahan dilaksanakan mengikut turutan",
+                    "B. Arahan dilaksanakan secara rawak",
+                    "C. Arahan dilaksanakan berulang kali sahaja",
+                    "D. Arahan dilaksanakan berdasarkan syarat sahaja"
+                ],
+                answerIndex: 0,
+                answerText: "A. Arahan dilaksanakan mengikut turutan",
+                explanation: "Struktur kawalan jujukan melaksanakan arahan mengikut urutan yang ditetapkan."
+            },
+            {
+                id: 21,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Struktur kawalan yang menggunakan satu pilihan berdasarkan syarat ialah:",
+                options: ["A. if", "B. if-else", "C. for", "D. while"],
+                answerIndex: 0,
+                answerText: "A. if",
+                explanation: "if digunakan bagi struktur kawalan pilihan tunggal."
+            },
+            {
+                id: 22,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Apakah fungsi struktur if-else?",
+                options: [
+                    "A. Melaksanakan satu arahan sahaja",
+                    "B. Menyediakan dua cabang pilihan",
+                    "C. Mengulangi arahan",
+                    "D. Menyimpan data"
+                ],
+                answerIndex: 1,
+                answerText: "B. Menyediakan dua cabang pilihan",
+                explanation: "if-else menyediakan dua cabang berdasarkan keadaan syarat."
+            },
+            {
+                id: 23,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Situasi manakah paling sesuai menggunakan struktur kawalan pilihan pelbagai?",
+                options: [
+                    "A. Menentukan sama ada nombor positif atau negatif sahaja",
+                    "B. Menentukan sama ada murid hadir atau tidak hadir",
+                    "C. Menentukan gred A, B, C atau gagal berdasarkan markah",
+                    "D. Mencetak nama sebanyak 10 kali"
+                ],
+                answerIndex: 2,
+                answerText: "C. Menentukan gred A, B, C atau gagal berdasarkan markah",
+                explanation: "Pilihan pelbagai digunakan apabila terdapat lebih daripada dua kemungkinan pilihan."
+            },
+            {
+                id: 24,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Apakah maksud struktur kawalan pilihan bersarang?",
+                options: [
+                    "A. Pilihan yang digunakan berulang kali",
+                    "B. Satu struktur pilihan berada di dalam struktur pilihan yang lain",
+                    "C. Pilihan tanpa syarat",
+                    "D. Dua pemboleh ubah digunakan serentak"
+                ],
+                answerIndex: 1,
+                answerText: "B. Satu struktur pilihan berada di dalam struktur pilihan yang lain",
+                explanation: "Pilihan bersarang ialah struktur pilihan yang terdapat di dalam struktur pilihan yang lain."
+            },
+            {
+                id: 25,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Situasi manakah sesuai menggunakan pilihan bersarang?",
+                options: [
+                    "A. Paparkan nama sekali sahaja",
+                    "B. Semak kelayakan menyertai pertandingan dan kemudian semak kebenaran ibu bapa",
+                    "C. Paparkan nombor 1 hingga 10",
+                    "D. Kira jumlah dua nombor"
+                ],
+                answerIndex: 1,
+                answerText: "B. Semak kelayakan menyertai pertandingan dan kemudian semak kebenaran ibu bapa",
+                explanation: "Semakan kedua hanya dilakukan berdasarkan hasil semakan pertama."
+            },
+            {
+                id: 26,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Apakah tujuan utama struktur kawalan ulangan?",
+                options: [
+                    "A. Melaksanakan arahan secara berulang",
+                    "B. Menyimpan data",
+                    "C. Membandingkan dua nilai sahaja",
+                    "D. Memadam pemboleh ubah"
+                ],
+                answerIndex: 0,
+                answerText: "A. Melaksanakan arahan secara berulang",
+                explanation: "Struktur ulangan membolehkan arahan dilaksanakan berulang kali."
+            },
+            {
+                id: 27,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Struktur ulangan for paling sesuai digunakan apabila:",
+                options: [
+                    "A. Bilangan ulangan telah diketahui",
+                    "B. Tiada syarat",
+                    "C. Program mesti berhenti serta-merta",
+                    "D. Nilai pemboleh ubah tidak diperlukan"
+                ],
+                answerIndex: 0,
+                answerText: "A. Bilangan ulangan telah diketahui",
+                explanation: "for sesuai apabila bilangan ulangan diketahui."
+            },
+            {
+                id: 28,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Anda ingin memaparkan nombor 1 hingga 10. Bilangan ulangan telah diketahui. Struktur yang sesuai ialah:",
+                options: ["A. if", "B. if-else", "C. for", "D. while"],
+                answerIndex: 2,
+                answerText: "C. for",
+                explanation: "for sesuai digunakan apabila bilangan ulangan telah diketahui."
+            },
+            {
+                id: 29,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Atur cara meminta pengguna memasukkan kata laluan sehingga kata laluan yang betul dimasukkan. Struktur yang paling sesuai ialah:",
+                options: ["A. if", "B. while", "C. for", "D. if-else"],
+                answerIndex: 1,
+                answerText: "B. while",
+                explanation: "while sesuai apabila ulangan bergantung kepada keadaan atau syarat."
+            },
+            {
+                id: 30,
+                subtopic: "3.2 Struktur Kod Arahan",
+                question: "Atur cara menerima beberapa nombor sehingga pengguna memasukkan 0. Dalam setiap ulangan, atur cara hanya menambah nombor yang positif ke dalam jumlah. Selepas itu jumlah dipaparkan.\n\nApakah gabungan struktur kawalan yang paling sesuai?",
+                options: [
+                    "A. Jujukan sahaja",
+                    "B. Pilihan sahaja",
+                    "C. Ulangan dan pilihan",
+                    "D. Pilihan bersarang sahaja"
+                ],
+                answerIndex: 2,
+                answerText: "C. Ulangan dan pilihan",
+                explanation: "Situasi ini memerlukan ulangan untuk menerima nombor berulang kali dan pilihan untuk menentukan sama ada nombor positif perlu ditambah."
+            }
+        ];
+
+        // App State
+        let currentIndex = 0;
+        let revealed = false;
+
+        // DOM Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const finalScreen = document.getElementById('final-screen');
+
+        const currentQNum = document.getElementById('current-q-num');
+        const totalQNum = document.getElementById('total-q-num');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+
+        const questionSubtopic = document.getElementById('question-subtopic');
+        const questionText = document.getElementById('question-text');
+        const codeBlockContainer = document.getElementById('code-block-container');
+        const codeSnippetText = document.getElementById('code-snippet-text');
+        const optionsGrid = document.getElementById('options-grid');
+
+        const explanationPanel = document.getElementById('explanation-panel');
+        const revealedCorrectOption = document.getElementById('revealed-correct-option');
+        const explanationText = document.getElementById('explanation-text');
+
+        const actionBtn = document.getElementById('action-btn');
+        const jumpModal = document.getElementById('jump-modal');
+        const questionsGridNav = document.getElementById('questions-grid-nav');
+
+        // Initialize Quiz
+        function startQuiz() {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            quizScreen.classList.add('flex');
+            finalScreen.classList.add('hidden');
+            
+            currentIndex = 0;
+            revealed = false;
+            renderQuestion();
+            generateJumpNav();
+        }
+
+        // Render Current Question
+        function renderQuestion() {
+            const currentQ = questionsData[currentIndex];
+            revealed = false;
+
+            // Header Updates
+            currentQNum.textContent = currentIndex + 1;
+            totalQNum.textContent = questionsData.length;
+            
+            const progressPercent = ((currentIndex + 1) / questionsData.length) * 100;
+            progressBarFill.style.width = `${progressPercent}%`;
+
+            // Question Content
+            questionSubtopic.textContent = currentQ.subtopic;
+            
+            // Format question text with linebreaks if needed
+            questionText.innerHTML = currentQ.question.replace(/\n/g, '<br>');
+
+            // Optional Code Snippet
+            if (currentQ.codeSnippet) {
+                codeSnippetText.textContent = currentQ.codeSnippet;
+                codeBlockContainer.classList.remove('hidden');
+            } else {
+                codeBlockContainer.classList.add('hidden');
+            }
+
+            // Options Cards (Display Only - No Clickable Buttons)
+            optionsGrid.innerHTML = '';
+            currentQ.options.forEach((optText, idx) => {
+                const optCard = document.createElement('div');
+                optCard.id = `option-card-${idx}`;
+                optCard.className = 'glass-card p-5 sm:p-6 rounded-2xl border border-slate-700/70 text-lg sm:text-xl font-bold text-slate-200 transition-all duration-300 flex items-center space-x-3';
+                
+                // Add prefix icon styling
+                const optionLetter = optText.charAt(0);
+                const restOfText = optText.substring(2);
+
+                optCard.innerHTML = `
+                    <span class="bg-slate-800 text-indigo-300 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center font-extrabold flex-shrink-0 text-xl">
+                        ${optionLetter}
+                    </span>
+                    <span class="leading-snug">${restOfText}</span>
+                `;
+                optionsGrid.appendChild(optCard);
+            });
+
+            // Reset Revealed Panel & Button
+            explanationPanel.classList.add('hidden');
+            
+            actionBtn.className = "w-full sm:w-auto glow-button bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xl sm:text-2xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-3 border-2 border-indigo-400/40";
+            actionBtn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i><span>🔍 REVEAL ANSWER</span>`;
+
+            // Scroll smoothly to top of question
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Primary Action Handler (Reveal -> Next Question)
+        function handlePrimaryAction() {
+            if (!revealed) {
+                revealAnswer();
+            } else {
+                nextQuestion();
+            }
+        }
+
+        // Reveal Answer Logic
+        function revealAnswer() {
+            revealed = true;
+            const currentQ = questionsData[currentIndex];
+
+            // Highlight Correct Option Card
+            currentQ.options.forEach((_, idx) => {
+                const card = document.getElementById(`option-card-${idx}`);
+                if (idx === currentQ.answerIndex) {
+                    card.className = 'correct-answer-card p-5 sm:p-6 rounded-2xl text-lg sm:text-xl font-extrabold text-white flex items-center justify-between space-x-3 animate-pop';
+                    card.innerHTML += `<i class="fa-solid fa-circle-check text-emerald-400 text-2xl"></i>`;
+                } else {
+                    card.classList.add('dimmed-card');
+                }
+            });
+
+            // Populate Explanation Box
+            revealedCorrectOption.textContent = currentQ.answerText;
+            explanationText.textContent = currentQ.explanation;
+            explanationPanel.classList.remove('hidden');
+
+            // Update Primary Button for Next Action
+            if (currentIndex === questionsData.length - 1) {
+                actionBtn.className = "w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 hover:from-emerald-500 hover:to-teal-400 text-white font-black text-xl sm:text-2xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-3 border-2 border-emerald-400/50 animate-bounce";
+                actionBtn.innerHTML = `<span>🎉 TAMAT ULANG KAJI</span><i class="fa-solid fa-flag-checkered"></i>`;
+            } else {
+                actionBtn.className = "w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xl sm:text-2xl px-10 py-5 rounded-2xl shadow-2xl transition transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-3 border-2 border-emerald-400/40";
+                actionBtn.innerHTML = `<span>➡️ SOALAN SETERUSNYA</span><i class="fa-solid fa-arrow-right"></i>`;
+            }
+
+            // Smooth scroll down slightly to ensure answer panel is visible
+            setTimeout(() => {
+                explanationPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // Advance to Next Question or Final Screen
+        function nextQuestion() {
+            if (currentIndex < questionsData.length - 1) {
+                currentIndex++;
+                renderQuestion();
+            } else {
+                showFinalScreen();
+            }
+        }
+
+        // Final Completion Screen
+        function showFinalScreen() {
+            quizScreen.classList.add('hidden');
+            quizScreen.classList.remove('flex');
+            finalScreen.classList.remove('hidden');
+            finalScreen.classList.add('flex');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Restart Entire Quiz
+        function restartQuiz() {
+            startQuiz();
+        }
+
+        // Teacher Jump Navigation Modal
+        function generateJumpNav() {
+            questionsGridNav.innerHTML = '';
+            questionsData.forEach((q, idx) => {
+                const navBtn = document.createElement('button');
+                navBtn.className = `p-3 rounded-xl font-bold text-sm border transition flex flex-col items-center justify-center ${
+                    idx === currentIndex 
+                        ? 'bg-indigo-600 text-white border-indigo-400 shadow-lg' 
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'
+                }`;
+                navBtn.textContent = idx + 1;
+                navBtn.onclick = () => {
+                    currentIndex = idx;
+                    renderQuestion();
+                    toggleJumpModal();
+                };
+                questionsGridNav.appendChild(navBtn);
+            });
+        }
+
+        function toggleJumpModal() {
+            if (jumpModal.classList.contains('hidden')) {
+                generateJumpNav();
+                jumpModal.classList.remove('hidden');
+            } else {
+                jumpModal.classList.add('hidden');
+            }
+        }
+
+        // Fullscreen Toggle Helper
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Keyboard & Remote Presenter Shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ignore key triggers if modal is open (except Escape)
+            if (!jumpModal.classList.contains('hidden')) {
+                if (e.key === 'Escape') toggleJumpModal();
+                return;
+            }
+
+            // Start Screen Hotkey
+            if (!startScreen.classList.contains('hidden')) {
+                if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    startQuiz();
+                }
+                return;
+            }
+
+            // Quiz Screen Hotkeys
+            if (!quizScreen.classList.contains('hidden')) {
+                if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    handlePrimaryAction();
+                } else if (e.key === 'ArrowLeft' && currentIndex > 0 && !revealed) {
+                    // Quick backtrack for teacher
+                    currentIndex--;
+                    renderQuestion();
+                }
+                return;
+            }
+
+            // Final Screen Hotkey
+            if (!finalScreen.classList.contains('hidden')) {
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    restartQuiz();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
